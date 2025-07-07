@@ -1,11 +1,11 @@
 ## EPS Extraction Tool
 
-This project processes HTML filings and extracts the Earnings Per Share (EPS) values using two complementary strategies: a structured table parser and a fallback full-text search. 
-parser.py is the parser code. 
-output.csv is the result
-parser_ai.py is the parser build with OpenAi API
-output_ai.csv is the result from the OpanAi API
-I used the result from OpenAi API to justify my parser's result
+This project processes HTML filings and extracts the Earnings Per Share (EPS) values using two complementary strategies: a structured table parser and a fallback full-text search. \n
+parser.py is the parser code. \n
+output.csv is the result\n
+parser_ai.py is the parser build with OpenAi API\n
+output_ai.csv is the result from the OpanAi API\n
+I used the result from OpenAi API to justify my parser's result when building the parser\n
 
 ---
 
