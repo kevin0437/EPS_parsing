@@ -1,7 +1,11 @@
 ## EPS Extraction Tool
 
-This project processes HTML filings and extracts the Earnings Per Share (EPS) values using two complementary strategies: a structured table parser and a fallback full-text search. Below is a step-by-step guide to how the code works.
-
+This project processes HTML filings and extracts the Earnings Per Share (EPS) values using two complementary strategies: a structured table parser and a fallback full-text search. 
+parser.py is the parser code. 
+output.csv is the result
+parser_ai.py is the parser build with OpenAi API
+output_ai.csv is the result from the OpanAi API
+I used the result from OpenAi API to justify my parser's result.
 ---
 
 ### 1. Installation & Setup
@@ -132,17 +136,6 @@ Run:
 python your_script.py
 ```
 
-and find your EPS results in `output.csv`.
 
----
-
-### 8. Customization & Tips
-
-- **Add keywords**: update `KEYWORDS` to catch new EPS label variants.
-- **Adjust snippet windows**: tweak `window_size` in snippet functions.
-- **Force GAAP vs non‑GAAP**: modify ranking logic in `process`.
-- **Logging**: sprinkle `print` or Python’s `logging` for deeper debugging.
-
----
 
 
