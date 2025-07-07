@@ -5,7 +5,7 @@ parser.py is the parser code. \
 output.csv is the result \
 parser_ai.py is the parser build with OpenAi API \
 output_ai.csv is the result from the OpanAi API \
-I used the result from OpenAi API to justify my parser's result when building the parser \
+I used the result from OpenAi API to justify my parser's result when building the parser 
 
 ---
 
