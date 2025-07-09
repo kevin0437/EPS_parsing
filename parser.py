@@ -11,7 +11,7 @@ import pandas as pd
 # -----------------------------------------------------------------------------
 def normalize_number(raw: str,force = False) -> float:
     """Convert '(4.50)' → -4.5 and strip '$' if present."""
-    val = raw.replace('$', '').replace(',', '').strip()
+    val = raw.replace('$', '').replace(',', '').replace('%', '').strip()
     if val.startswith('('):
         if val.endswith(')'):
             val = val[1:-1]
@@ -162,18 +162,20 @@ def find_text_around_keyword(
     snippet_right = text[kw_end:right]
     return snippet_left, snippet_right, left
   
-
+# -----------------------------------------------------------------------------
+# 4) FULL-TEXT FALLBACK (last-resort)
+# -----------------------------------------------------------------------------
 def extract_from_text(html: str) -> float|None:
-    
     body_text  = html_to_text(html)
     table_text = html_table_text(html)
-    
     
     kw_pat = "|".join(re.escape(k) for k in KEYWORDS)
     KW_RE  = re.compile(rf'\b(?:{kw_pat})\b', re.IGNORECASE)
     NUM_RE = re.compile(r'\(?\$?\d+\.\d+\)?')
     candidates = []
     
+    #print(table_text)
+
     def process(content: str, mode: str):
         """
         mode == 'both'  -> look left & right
@@ -250,6 +252,7 @@ def extract_from_text(html: str) -> float|None:
                 force_neg = bool(" loss " in txt_left_num.lower() or " loss" in txt_left_num.lower() or "loss " in txt_left_num.lower())
 
                 # record candidate
+                # key = (type, gap, side, measurement, keyword_pos)
                 candidates.append(((meas, typ, src, ks, gap, side_flag), raw_num, force_neg))
                 #print(f"Found candidate: {((meas, typ, src, gap, ks, side_flag), raw_num, force_neg)} at ({txt_around})")
                 
@@ -264,6 +267,7 @@ def extract_from_text(html: str) -> float|None:
     # pick best candidate
     candidates.sort(key=lambda x: x[0])
     _, best_raw, do_force = candidates[0]
+    
     return normalize_number(best_raw, force=do_force)
 
 def html_table_text(html: str) -> str:
@@ -369,9 +373,6 @@ def html_table_df(html: str) :
         
     return result
 
-
-
-
 def stitch_row_tokens_df(row: pd.Series) -> pd.Series:
     """
     Given a pandas Series representing a DataFrame row of cell-strings,
@@ -430,8 +431,6 @@ def stitch_row_tokens_df(row: pd.Series) -> pd.Series:
 
     # Return as Series with same index
     return pd.Series(stitched, index=row.index)
-
-
 
 def is_eps_header_row(row_text: str, prev_text: str = "") -> bool:
     """
@@ -517,7 +516,6 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
         if not year_cols:
             continue
         max_year = max(y for _, y in year_cols)
-        
         max_year_cols = [j for j, y in year_cols if y == max_year]
         
         # Scan rows below header for 'Basic'
@@ -542,14 +540,11 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
             
             # Determine header match context
             is_eps_literal = bool(eps_literal_re.search(row_text) or eps_literal_re.search(prev_text))
-            
             is_other_header = is_eps_header_row(row_text, prev_text)
 
             
             if not (is_eps_literal or is_other_header):
                 continue
-            
-           
             
             # Evaluate each candidate column for numeric EPS
             for col_idx in max_year_cols:
@@ -557,9 +552,9 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
                     continue
                 raw = str(df.iat[row_idx, col_idx]).strip()
                 
-                if not re.match(r'^\$?\(?\d', raw):
+                if (not re.match(r'^\$?\(?\d', raw)) or "%" in raw:
                     continue
-
+                
                 # Normalize number
                 eps = normalize_number(raw)
                 
