@@ -626,7 +626,7 @@ def main():
 
     with open(output_csv, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["file", "eps"])
+        writer.writerow(["filename", "EPS"])
         writer.writerows(rows)
 
     print(f"\nDone. Results in {output_csv}")

@@ -142,7 +142,7 @@ for path in glob.glob(os.path.join(INPUT_DIR, "*.html")):
 # Write out results
 with open(OUTPUT_CSV, "w", newline='', encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["file", "eps"] )
+    writer.writerow(["filename", "EPS"] )
     writer.writerows(rows)
 
 print(f"Done. Results written to {OUTPUT_CSV}")
