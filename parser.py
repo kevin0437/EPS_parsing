@@ -211,6 +211,9 @@ def extract_from_text(html: str) -> float|None:
                 abs_end   = left + ne
                 raw_num   = m_num.group(0)
                 
+                if (not re.match(r'^(\$\(?|\(\$?)\d', raw_num)) or "%" in raw_num:
+                    continue
+                
                 txt_left_num = find_text_around_keyword(
                     content, abs_start, abs_end, 150, side = "both"
                 )[0]
@@ -344,10 +347,17 @@ def html_table_df(html: str) :
             style = cell.get('style', '')
             if 'display:none' in style.replace(' ', ''):
                 cell.decompose()
-
+                
+        all_cells = table.find_all(['td','th'])
+        if len(all_cells) == 0:
+            continue
+        max_colspan = max(int(cell.get('colspan',1)) for cell in all_cells)
+        
         # 4. Build a list of rows, expanding colspans
         all_rows = []
         for tr in table.find_all('tr'):
+            if any(int(cell.get('colspan',1)) == max_colspan for cell in tr.find_all(['td','th'])):
+                continue
             row = []
             for cell in tr.find_all(['td', 'th']):
                 text = cell.get_text(strip=True)
@@ -356,8 +366,10 @@ def html_table_df(html: str) :
                 row.extend([text] * colspan)
             if any(item != '' for item in row):  # skip completely empty rows
                 all_rows.append(row)
+                
         if len(all_rows) == 0:
             continue
+        
         # 5. Pad rows to the same length
         max_cols = max(len(r) for r in all_rows)
         normalized = [r + [''] * (max_cols - len(r)) for r in all_rows]
@@ -529,14 +541,14 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
                 prev_text = " ".join(prev_vals).lower()
                 
             
-           
+            
             # Skip share-count rows
             if 'shares ' in row_text or ('shares ' in prev_text and 'basic' not in row_text) or 'continuing operations' in row_text:
                 continue
             
             if not ('basic' in row_text or row_vals[0].lower()=='eps'):
                 continue
-            
+        
             
             # Determine header match context
             is_eps_literal = bool(eps_literal_re.search(row_text) or eps_literal_re.search(prev_text))
@@ -552,7 +564,7 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
                     continue
                 raw = str(df.iat[row_idx, col_idx]).strip()
                 
-                if (not re.match(r'^\$?\(?\d', raw)) or "%" in raw:
+                if (not re.match(r'^(\$\(?|\(\$?)\d', raw)) or "%" in raw:
                     continue
                 
                 # Normalize number
@@ -591,7 +603,7 @@ def find_basic_eps_latest_year_dfs(dfs: List[pd.DataFrame]):
 
     if not candidates:
         return None
-    print(candidates)
+    #print(candidates)
     # Pick highest-priority candidate
     candidates.sort(reverse=True, key=lambda x: x[0])
     return candidates[0][1]
